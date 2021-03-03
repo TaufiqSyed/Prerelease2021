@@ -1,0 +1,84 @@
+// TASK 1.1
+TYPE Book
+	DECLARE BookCode : 100..999
+	DECLARE Title : STRING
+	DECLARE Author : STRING
+	DECLARE PublicationYear : INTEGER
+ENDTYPE
+
+
+// TASK 1.7
+CONST MAX_NO_RECORDS = 13
+FUNCTION Hash(Key : INTEGER) : INTEGER
+    RETURN Key MOD MAX_NO_RECORDS
+ENDFUNCTION
+
+
+// TASK 1.8
+PROCEDURE StoreBookRandom(MyBook as Book)
+    OPENFILE "books.dat" FOR RANDOM
+	DECLARE Collision : Book
+	DECLARE Address, InitialAddress : INTEGER
+	DECLARE IsFull : BOOLEAN
+
+	IsFull <- FALSE
+	Address <- Hash(MyBook.code)
+	InitialAddress <- Address
+
+ 	DO
+ 		SEEK "books.dat", Address
+ 		GETRECORD "books.dat", Collision
+ 		Address <- Address + 1
+ 		IF Address >= MAX_NO_RECORDS
+ 		  THEN
+ 			Address <- 0
+ 		ENDIF
+ 		IF Address = InitialAddress
+ 		  THEN
+ 			OUTPUT "File is full"
+ 			IsFull <- True
+ 		ENDIF
+ 	UNTIL Collision IS EMPTY OR IsFull
+
+ 	IF NOT IsFull
+ 	  THEN
+ 	    PUTRECORD "books.dat", MyBook
+ 	ENDIF
+	CLOSEFILE "books.dat"
+ENDPROCEDURE
+
+
+// TASK 1.9
+PROCEDURE ReadBookRandom(BookCode : INTEGER)
+    OPENFILE "books.dat" FOR RANDOM
+	DECLARE CurrBook : Book
+	DECLARE Address, InitialAddress : INTEGER
+	DECLARE Found : BOOLEAN
+	Found <- FALSE
+
+	Address <- Hash(BookCode)
+	InitialAddress <- Address
+
+	DO
+	    SEEK "books.dat", Address
+ 		GETRECORD "books.dat", CurrBook
+ 		Address <- Address + 1
+ 		IF Address >= MAX_NO_RECORDS
+ 		  THEN
+ 			Address <- 0
+ 		ENDIF
+ 		IF CurrBook.BookCode = BookCode
+ 		  THEN
+ 		    OUTPUT ToString(Book.BookCode)
+ 			OUTPUT Book.Title
+ 			OUTPUT Book.Author
+ 			OUTPUT ToString(Book.PublicationYear)
+ 			IsFull <- True
+ 		ENDIF
+	UNTIL Found or Address = InitialAddress
+	IF NOT Found
+	  THEN
+	    OUTPUT "Book does not exist"
+	ENDIF
+	CLOSEFILE "books.dat"
+ENDPROCEDURE
